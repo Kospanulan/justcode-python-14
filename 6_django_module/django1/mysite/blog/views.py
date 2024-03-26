@@ -1,13 +1,15 @@
+from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, CreateView, FormView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from blog.forms import CreatePostForm
+from blog.forms import CreatePostForm, LoginForm
 from blog.models import Post
 
 
@@ -36,6 +38,7 @@ class PostListView(ListView):
     #     return render(request, 'blog/index.html', context)
 
 
+@login_required
 def index(request):  # PostListView
     posts = Post.objects.all().order_by('-created_at')
     # template = loader.get_template('blog/index.html')
@@ -112,3 +115,132 @@ def new_post(request):
 #                 f"{ ''.join([f'<li>{post.title}</li>' for post in posts]) }"
 #                 f"</ul>")
 #     return HttpResponse(response)
+
+
+
+# class LoginView(FormView):
+#
+#     model = get_user_model()
+#     template_name = 'blog/login.html'
+#     context_object_name = 'user'
+#
+#     def get_queryset(self):
+#         return Post.objects.all().order_by('-created_at')
+
+
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+
+            user = authenticate(username=username, password=password)
+
+            if user is not None:
+                login(request, user)
+
+            return redirect("index")
+        else:
+            return HttpResponse('Error creating!')
+
+    context = {
+        'form': LoginForm()
+    }
+
+    return render(request,
+                  'blog/login.html',
+                  context=context)
+
+
+
+
+
+
+
+
+
+
+
+def home(request):
+    posts = Post.objects.all()
+    context = {
+        'my_posts': posts
+    }
+    return render(request, 'blog/home.html', context=context)
+
+    # result = ""
+
+    # for post in posts:
+    #     result += (f"<h1>{post.title}</h1>"
+    #                f"<p>{post.id}. {post.content}...</p></br>")
+
+    # return HttpResponse(result)
+
+
+def get_post(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    context = {
+        'my_post': post
+    }
+    return render(request,
+                  'blog/post.html',
+                  context=context)
+    # return HttpResponse(f"<h1>{post.title}</h1>"
+    #                     f"<p>{post.content}...</p>")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
