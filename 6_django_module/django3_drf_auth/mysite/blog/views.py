@@ -1,11 +1,12 @@
 from django.forms import model_to_dict
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from rest_framework import generics, mixins, permissions, authentication
+from rest_framework import generics, mixins, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from blog.models import Post
+from blog.permissions import DjangoModelPermissionsWithRead
 from blog.serializers import PostSerializer
 
 
@@ -32,8 +33,8 @@ class PostListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-    authentication_classes = [authentication.SessionAuthentication]
-    permission_classes = [permissions.DjangoModelPermissions]
+    # permission_classes = [permissions.DjangoModelPermissions]
+    permission_classes = [DjangoModelPermissionsWithRead]
 
     def perform_create(self, serializer):
         print(self.request.user)
@@ -44,6 +45,7 @@ class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     lookup_field = 'pk'
+
 
 
 class PostUpdateView(generics.UpdateAPIView):
