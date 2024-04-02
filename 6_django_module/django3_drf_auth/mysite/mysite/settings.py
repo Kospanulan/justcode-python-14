@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_extensions',
     'rest_framework_simplejwt',
+    'django_filters',
 
     'blog.apps.BlogConfig',
     'authorization.apps.AuthorizationConfig',
@@ -120,7 +121,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSIONS_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
 
 

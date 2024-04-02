@@ -4,20 +4,72 @@ from django.shortcuts import render
 from rest_framework import generics, mixins, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django_filters import rest_framework as filters
 
+from blog.filters import PostFilter
 from blog.models import Post
 from blog.permissions import DjangoModelPermissionsWithRead
 from blog.serializers import PostSerializer
 
 
+class PostListCreateView(generics.ListCreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+    # permission_classes = [permissions.DjangoModelPermissions]
+    # permission_classes = [DjangoModelPermissionsWithRead]
+    permission_classes = [permissions.AllowAny]
+
+    filterset_class = PostFilter
+    filters.DjangoFilterBackend
+
+    # filterset_fields = ['title', 'content']
+
+
+    # filterset_fields = {
+    #     'title': ['exact', 'contains', 'icontains'],  # title, title__contains, title__icontains,
+    #     'content': ['exact'],
+    # }
+
+    # def get_queryset(self):
+    #     print("\nquery params:", self.request.query_params)
+    #     queryset = super().get_queryset()
+    #     print("\nquery set:", queryset)
+    #
+    #     title_is = self.request.query_params.get('title_is')
+    #     title_contains = self.request.query_params.get('title_contains')
+    #     content_is = self.request.query_params.get('content_is')
+    #     content_contains = self.request.query_params.get('content_contains')
+    #
+    #     if title_is:
+    #         queryset = queryset.filter(title__iexact=title_is)
+    #     if title_contains:
+    #         queryset = queryset.filter(title__icontains=title_contains)
+    #
+    #     if content_is:
+    #         queryset = queryset.filter(content__iexact=content_is)
+    #     if content_contains:
+    #         queryset = queryset.filter(content__icontains=content_contains)
+    #     return queryset
+
+    def perform_create(self, serializer):
+        print(self.request.user)
+        serializer.save(author=self.request.user)
+
+
+class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    lookup_field = 'pk'
+
+
+
+"""
 class PostDetailView(generics.RetrieveAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
     lookup_field = 'pk'
-
-# Pillow
-# cv2 - opencv-python
 
 
 @api_view(['GET'])
@@ -29,22 +81,7 @@ def choices(request):
     return Response({"choices": gender_choices})
 
 
-class PostListCreateView(generics.ListCreateAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
 
-    # permission_classes = [permissions.DjangoModelPermissions]
-    permission_classes = [DjangoModelPermissionsWithRead]
-
-    def perform_create(self, serializer):
-        print(self.request.user)
-        serializer.save(author=self.request.user)
-
-
-class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    lookup_field = 'pk'
 
 
 
@@ -74,14 +111,12 @@ class PostCRUDView(
     mixins.UpdateModelMixin,
     generics.GenericAPIView
 ):
-    """
     Retrieve - Чтение одной записи по айди - GET
     List - чтение списка записей - GET
     Create - создание
     Destroy - Удаление
     Update - обновление по айди
 
-    """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
@@ -110,8 +145,7 @@ class PostCRUDView(
         serializer.save(author_id=3)
 
 
-
-
+"""
 
 
 
