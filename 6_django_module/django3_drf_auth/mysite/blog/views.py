@@ -1,15 +1,25 @@
-from django.forms import model_to_dict
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from collections import OrderedDict
+
+from django.db.models import Q
 from rest_framework import generics, mixins, permissions
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from django_filters import rest_framework as filters
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+from rest_framework.response import Response
 
 from blog.filters import PostFilter
 from blog.models import Post
 from blog.permissions import DjangoModelPermissionsWithRead
 from blog.serializers import PostSerializer
+
+
+# class CustomPageNumberPagination(PageNumberPagination):
+#     page_size = 2
+#     page_size_query_param = 'page_size'
+#     max_page_size = 5
+#
+#     def get_paginated_response(self, data):
+#         return Response(data)
 
 
 class PostListCreateView(generics.ListCreateAPIView):
@@ -20,37 +30,15 @@ class PostListCreateView(generics.ListCreateAPIView):
     # permission_classes = [DjangoModelPermissionsWithRead]
     permission_classes = [permissions.AllowAny]
 
-    filterset_class = PostFilter
-    filters.DjangoFilterBackend
+    # filterset_class = PostFilter
 
-    # filterset_fields = ['title', 'content']
+    # search_fields = ['^title', 'content']  # title__istartswith, content__icontains
 
+    # ordering_fields = ['title', 'content']
+    # ordering = 'content'
 
-    # filterset_fields = {
-    #     'title': ['exact', 'contains', 'icontains'],  # title, title__contains, title__icontains,
-    #     'content': ['exact'],
-    # }
+    # pagination_class = CustomPageNumberPagination
 
-    # def get_queryset(self):
-    #     print("\nquery params:", self.request.query_params)
-    #     queryset = super().get_queryset()
-    #     print("\nquery set:", queryset)
-    #
-    #     title_is = self.request.query_params.get('title_is')
-    #     title_contains = self.request.query_params.get('title_contains')
-    #     content_is = self.request.query_params.get('content_is')
-    #     content_contains = self.request.query_params.get('content_contains')
-    #
-    #     if title_is:
-    #         queryset = queryset.filter(title__iexact=title_is)
-    #     if title_contains:
-    #         queryset = queryset.filter(title__icontains=title_contains)
-    #
-    #     if content_is:
-    #         queryset = queryset.filter(content__iexact=content_is)
-    #     if content_contains:
-    #         queryset = queryset.filter(content__icontains=content_contains)
-    #     return queryset
 
     def perform_create(self, serializer):
         print(self.request.user)
@@ -145,7 +133,7 @@ class PostCRUDView(
         serializer.save(author_id=3)
 
 
-"""
+
 
 
 
@@ -171,8 +159,7 @@ class PostCRUDView(
 
 
 
-
-
+"""
 
 
 

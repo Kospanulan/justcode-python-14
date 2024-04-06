@@ -3,27 +3,27 @@ from django_filters import rest_framework as filters
 from blog.models import Post
 
 
+def icontains_distinct(queryset, name, value):
+    lookup = f"{name}__icontains"  # comments__content__icontains="vkopdfv"
+    return queryset.filter(**{lookup: value}).distinct()
+    # return queryset.filter(comments__content__icontains=value)
+
+
 class PostFilter(filters.FilterSet):
 
-    test_contains = filters.CharFilter(field_name="title", lookup_expr="icontains")
-    test_exact = filters.CharFilter(field_name="title", lookup_expr="iexact")
+    start_date = filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
+    end_date = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
 
-    # min_age = filters.NumberFilter(field_name='age', lookup_expr="gte")
-    # max_age = filters.NumberFilter(field_name='age', lookup_expr="lte")
-
-    # start_date = filters.DateTimeFilter(field_name="created_at", lookup_expr="gte")
-    # end_date = filters.DateTimeFilter(field_name="created_at", lookup_expr="lte")
-
-    comment_contains = filters.CharFilter(field_name="comments__content", lookup_expr="icontains")
+    comment_contains = filters.CharFilter(field_name="comments__content", method=icontains_distinct)
 
     class Meta:
         model = Post
-        # fields = ['title', 'content']
         fields = {
             'title': ['exact', 'contains', 'icontains'],
             'content': ['exact'],
-            'created_at': ['gte', 'lte'],
-            # 'age': ['gte', 'lte']
         }
 
+    # def filter_queryset(self, queryset):
+    #     queryset = super().filter_queryset(queryset)
+    #     return queryset.distinct()
 
