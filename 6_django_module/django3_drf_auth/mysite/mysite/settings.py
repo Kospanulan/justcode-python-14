@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework_simplejwt',
     'django_filters',
+    'drf_spectacular',
 
     'blog.apps.BlogConfig',
     'authorization.apps.AuthorizationConfig',
@@ -127,6 +128,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'PAGE_SIZE': 3,
 }
 
@@ -171,6 +173,12 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': "Swagger for Blog API",
+    'DESCRIPTION': "blah-blah-blah",
+    'VERSION': '1.0.0',
+}
 
 
 # Internationalization

@@ -23,22 +23,20 @@ from blog.serializers import PostSerializer
 
 
 class PostListCreateView(generics.ListCreateAPIView):
-    queryset = Post.objects.all()
+    """
+    Hahahaha
+    """
+    queryset = Post.objects.all().prefetch_related('comments')
     serializer_class = PostSerializer
 
-    # permission_classes = [permissions.DjangoModelPermissions]
-    # permission_classes = [DjangoModelPermissionsWithRead]
     permission_classes = [permissions.AllowAny]
 
-    # filterset_class = PostFilter
-
-    # search_fields = ['^title', 'content']  # title__istartswith, content__icontains
-
-    # ordering_fields = ['title', 'content']
-    # ordering = 'content'
-
-    # pagination_class = CustomPageNumberPagination
-
+    # def get_queryset(self):
+    #     queryset = super().get_queryset()
+    #
+    #     queryset = queryset.prefetch_related('comments')
+    #
+    #     return queryset
 
     def perform_create(self, serializer):
         print(self.request.user)
