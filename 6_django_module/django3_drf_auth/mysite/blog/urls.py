@@ -14,5 +14,4 @@ urlpatterns = [
     # path('<int:pk>/delete/', views.PostDeleteView.as_view(), name='delete'),
     # path('<int:pk>/', views.PostDetailView.as_view(), name='detail')
 
-    # just for test
 ]
