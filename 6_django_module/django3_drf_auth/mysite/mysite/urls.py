@@ -24,13 +24,11 @@ from mysite import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('posts/', include('blog.urls')),
+    path('blog/', include('blog.urls')),
     path('auth/', include('authorization.urls')),
-    # YOUR PATTERNS
+    # drf_spectacular - documentation urls
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    # Optional UI:
     path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    # path('auth/', include('authorization.urls'))
 ]
 
 if settings.DEBUG is True:

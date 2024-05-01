@@ -1,16 +1,18 @@
-from collections import OrderedDict
+from django.db.models import Count
+from django.shortcuts import get_object_or_404
 
-from django.db.models import Q
-from rest_framework import generics, mixins, permissions
+from rest_framework import generics, mixins, permissions, viewsets
 from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from blog.filters import PostFilter
-from blog.models import Post
+from blog.models import Post, Comment, Category
 from blog.permissions import DjangoModelPermissionsWithRead
-from blog.serializers import PostSerializer
+from blog.serializers import PostListCreateSerializer, PostRetrieveUpdateDestroySerializer, CommentSerializer, \
+    CategoriesSerializer
 
 
 # class CustomPageNumberPagination(PageNumberPagination):
@@ -23,32 +25,74 @@ from blog.serializers import PostSerializer
 
 
 class PostListCreateView(generics.ListCreateAPIView):
-    """
-    Hahahaha
-    """
-    queryset = Post.objects.all().prefetch_related('comments')
-    serializer_class = PostSerializer
+    serializer_class = PostListCreateSerializer
+    filter_backends = []
 
-    permission_classes = [permissions.AllowAny]
-
-    # def get_queryset(self):
-    #     queryset = super().get_queryset()
-    #
-    #     queryset = queryset.prefetch_related('comments')
-    #
-    #     return queryset
+    def get_queryset(self):
+        queryset = (Post.objects.all()
+                    .annotate(comments_count=Count('comments'))
+                    .order_by('-created_at'))
+        return queryset
 
     def perform_create(self, serializer):
-        print(self.request.user)
         serializer.save(author=self.request.user)
 
 
 class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    lookup_field = 'pk'
+    serializer_class = PostRetrieveUpdateDestroySerializer
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset, pk=self.kwargs['post_id'])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 
+class CommentsListView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        queryset = (
+            Comment.objects.all()
+            .filter(post_id=self.kwargs['post_id'])
+            .order_by('-created_at')
+        )
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(
+            author=self.request.user,
+            post_id=self.kwargs['post_id']
+        )
+
+
+class CategoriesListCreateView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategoriesSerializer
+
+
+class CategoriesAddView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        categories_ids = request.data.get('categories')
+        post_id = kwargs.get('post_id')
+
+        post = Post.objects.get(id=post_id)
+        post.categories.add(*categories_ids)
+
+        return Response({"detail": "Categories added to post successfully"})
+
+
+class CategoriesUpdateView(generics.UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostRetrieveUpdateDestroySerializer
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset, pk=self.kwargs['post_id'])
+        self.check_object_permissions(self.request, obj)
+        return obj
 
 """
 class PostDetailView(generics.RetrieveAPIView):
@@ -159,50 +203,20 @@ class PostCRUDView(
 
 """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # @api_view(['GET', 'POST'])
 # def index(request):
 #
-    # if request.method == 'POST':
-    #     # print(request.POST)
-    #     print(request.data)
-    #     instance = PostSerializer(data=request.data)
-    #
-    #     if instance.is_valid(raise_exception=True):
-    #         instance.save()
-    #         # post.author_id = 1
-    #         # post.save()
-    #         return Response(instance.data, status=status.HTTP_201_CREATED)
-        # return Response({"detail": "Error creating", "status": status.HTTP_400_BAD_REQUEST})
+# if request.method == 'POST':
+#     # print(request.POST)
+#     print(request.data)
+#     instance = PostSerializer(data=request.data)
+#
+#     if instance.is_valid(raise_exception=True):
+#         instance.save()
+#         # post.author_id = 1
+#         # post.save()
+#         return Response(instance.data, status=status.HTTP_201_CREATED)
+# return Response({"detail": "Error creating", "status": status.HTTP_400_BAD_REQUEST})
 #
 #     elif request.method == 'GET':
 #         post_id = request.GET.get('post_id')
